@@ -1,6 +1,8 @@
 # CodeSandbox
 
-A development environment containing a web-based code editor and a Flask backend for executing code snippets. This project integrates a Monaco editor for code editing and a Flask application for running and analyzing code in Python and Java. Docker is used for isolated execution environments.
+A development environment containing a web-based code editor and a Flask backend for executing code snippets. This project integrates a Monaco editor for code editing and a Flask application for running and analyzing code in Python and Java. Docker is used for isolated execution environments. 
+
+The development of the code editor was done for study purposes only. The code is still in developmental phases. I have developed this code to help coach myself to practice for interviews (specifically whiteboarding). The code editor though has inbuilt support for auto complete and suggestions. 
 
 ![Screenshot](screenshots/screenshot-java.png)
 ![Screenshot](screenshots/screenshot-python.png)
