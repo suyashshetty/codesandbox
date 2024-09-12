@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #editor {
+            width: 80%;
+            height: 80%; /* Make the editor occupy 80% of the window height */
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        #output {
+            width: 80%;
+            border: 1px solid #ccc;
+            height: 150px;
+            padding: 10px;
+            overflow: auto;
+            background-color: #1e1e1e; /* Dark background */
+            color: #d4d4d4; /* Light text color */
+            font-family: monospace; /* Same as the editor font */
+            white-space: pre-wrap; /* Preserves new lines */
+        }
+
+        button {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Monaco Editor - Code Execution</h1>
+    <label for="language">Choose a language:</label>
+    <select id="language" onchange="changeLanguage()">
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="java">Java</option>
+    </select>
+    
+    <div id="editor"></div>
+    <button onclick="runCode()">Run Code</button>
+    
+    <h3>Output:</h3>
+    <div id="output"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+    <script>
+        // Load Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' }});
+        require(['vs/editor/editor.main'], function () {
+            window.editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '// Write your code here\nconsole.log("Hello, World!");',
+                language: 'javascript',
+                theme: 'vs-dark'
+            });
+        });
+
+        // Function to run the code written in the editor
+        function runCode() {
+            const code = window.editor.getValue();
+            const outputElement = document.getElementById('output');
+            const selectedLanguage = document.getElementById('language').value;
+
+            if (selectedLanguage === 'javascript') {
+                // For JavaScript, execute code locally
+                try {
+                    outputElement.innerText = '';
+                    const result = eval(code);
+                    outputElement.innerText = result !== undefined ? result : '';
+                } catch (err) {
+                    outputElement.innerText = 'Error: ' + err.message;
+                }
+            } else {
+                // For Python or Java, send the code to the Flask backend at port 5000
+                fetch('http://127.0.0.1:5000/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ language: selectedLanguage, code: code }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.output) {
+                        outputElement.innerText = `Output:\n${data.output}\n\n` +
+                            `Execution Time: ${data.execution_time} seconds\n` +
+                            `Memory Usage: ${data.memory_usage !== null ? data.memory_usage + " MB" : "Not available"}\n` +
+                            `Memory Percentage: ${data.memory_percentage !== null ? data.memory_percentage + " %" : "Not available"}\n` +
+                            `CPU Usage: ${data.cpu_percentage !== null ? data.cpu_percentage + " %" : "Not available"}\n` +
+                            `Network IO: ${data.net_io !== null ? data.net_io + " bytes" : "Not available"}\n` +
+                            `Block IO: ${data.block_io !== null ? data.block_io + " bytes" : "Not available"}\n` +
+                            `PIDs: ${data.pids !== null ? data.pids : "Not available"}`;
+                    } else if (data.error) {
+                        outputElement.innerText = 'Error: ' + data.error;
+                    }
+                })
+                .catch(error => {
+                    outputElement.innerText = 'Error: ' + error.message;
+                });
+            }
+        }
+
+        function changeLanguage() {
+            const language = document.getElementById('language').value;
+            // Change the editor language dynamically
+            monaco.editor.setModelLanguage(window.editor.getModel(), language);
+
+            // Update the default content based on selected language
+            if (language === 'javascript') {
+                window.editor.setValue('// Write your JavaScript code here\nconsole.log("Hello, JavaScript!");');
+            } else if (language === 'python') {
+                window.editor.setValue('# Write your Python code here\nprint("Hello, Python!")');
+            } else if (language === 'java') {
+                window.editor.setValue('// Write your Java code here\npublic class Solution {\n  public static void main(String[] args) {\n    System.out.println("Hello, Java!");\n  }\n}');
+            }
+        }
+    </script>
+</body>
+</html>

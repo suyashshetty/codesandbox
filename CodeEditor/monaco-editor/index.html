@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #editor {
+            width: 80%;
+            height: 300px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        #output {
+            width: 80%;
+            border: 1px solid #ccc;
+            height: 100px;
+            padding: 10px;
+            overflow: auto;
+        }
+
+        button {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Monaco Editor - Code Execution</h1>
+    
+    <div id="editor"></div>
+    <button onclick="runCode()">Run Code</button>
+    
+    <h3>Output:</h3>
+    <div id="output"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+    <script>
+        // Load Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' }});
+        require(['vs/editor/editor.main'], function () {
+            window.editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '// Write your code here\nconsole.log("Hello, World!");',
+                language: 'javascript',
+                theme: 'vs-dark'
+            });
+        });
+
+        // Function to run the code written in the editor
+        function runCode() {
+            const code = window.editor.getValue();
+            const outputElement = document.getElementById('output');
+            try {
+                // Clear previous output
+                outputElement.innerText = '';
+                
+                // Run code and capture output
+                const result = eval(code);
+                if (result !== undefined) {
+                    outputElement.innerText = result;
+                }
+            } catch (err) {
+                outputElement.innerText = 'Error: ' + err.message;
+            }
+        }
+    </script>
+</body>
+</html>

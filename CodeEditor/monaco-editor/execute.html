@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Based Code Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #container {
+            display: flex;
+            flex-grow: 1;
+            width: 100%;
+            height: calc(100vh - 60px); /* Remaining height after header */
+        }
+
+        #editor-container {
+            width: 70%; /* Editor takes 70% width */
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #output-container {
+            width: 30%; /* Output takes 30% width */
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor {
+            width: 100%;
+            height: 90%;
+            border: 1px solid #ccc;
+        }
+
+        #output {
+            width: 100%;
+            height: 90%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow: auto;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: monospace;
+            white-space: pre-wrap;
+            box-sizing: border-box;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        select, button {
+            margin-right: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Web Code Editor - Monaco</h1>
+
+    <div id="controls">
+        <label for="language">Choose a language:</label>
+        <select id="language" onchange="changeLanguage()">
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+        </select>
+        <button onclick="runCode()">Run Code</button>
+    </div>
+
+    <div id="container">
+        <div id="editor-container">
+            <div id="editor"></div>
+        </div>
+        <div id="output-container">
+            <div id="output"><p>Output:</p></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+    <script>
+        // Load Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' }});
+        require(['vs/editor/editor.main'], function () {
+            window.editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '# Write your code here\nprint("Hello, World!");',
+                language: 'python',
+                theme: 'vs-dark'
+            });
+        });
+
+        // Function to run the code written in the editor
+        function runCode() {
+            const code = window.editor.getValue();
+            const outputElement = document.getElementById('output');
+            const selectedLanguage = document.getElementById('language').value;
+
+            fetch('http://127.0.0.1:5000/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ language: selectedLanguage, code: code }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.output) {
+                    outputElement.innerText = `Output:\n${data.output}\n\n` +
+                        `Execution Time: ${data.execution_time} seconds\n` +
+                        `Memory Usage: ${data.memory_usage !== null ? data.memory_usage + " MB" : "Not available"}\n` +
+                        `Memory Percentage: ${data.memory_percentage !== null ? data.memory_percentage + " %" : "Not available"}\n` +
+                        `CPU Usage: ${data.cpu_percentage !== null ? data.cpu_percentage + " %" : "Not available"}\n` +
+                        `Network IO: ${data.net_io !== null ? data.net_io + " bytes" : "Not available"}\n` +
+                        `Block IO: ${data.block_io !== null ? data.block_io + " bytes" : "Not available"}\n` +
+                        `PIDs: ${data.pids !== null ? data.pids : "Not available"}`;
+                } else if (data.error) {
+                    outputElement.innerText = 'Error: ' + data.error;
+                }
+            })
+            .catch(error => {
+                outputElement.innerText = 'Error: ' + error.message;
+            });
+        }
+
+        function changeLanguage() {
+            const language = document.getElementById('language').value;
+            monaco.editor.setModelLanguage(window.editor.getModel(), language);
+
+            if (language === 'python') {
+                window.editor.setValue('# Write your Python code here\nprint("Hello, Python!")');
+            } else if (language === 'java') {
+                window.editor.setValue('// Write your Java code here\npublic class Solution {\n  public static void main(String[] args) {\n    System.out.println("Hello, Java!");\n  }\n}');
+            }
+        }
+    </script>
+</body>
+</html>

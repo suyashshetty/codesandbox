@@ -1,0 +1,27 @@
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+Flask/code_executer/venv/
+
+# Temporary files
+*.log
+*.tmp
+
+# Docker specific
+*.dockerignore
+docker-compose.override.yml
+
+
+# Temp files
+Flask/code_executer/temp_code
+Flask/code_executer/saved_code
+
+# Data Store
+Flask/.DS_Store
+.DS_Store
