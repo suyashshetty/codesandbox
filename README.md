@@ -2,6 +2,9 @@
 
 A development environment containing a web-based code editor and a Flask backend for executing code snippets. This project integrates a Monaco editor for code editing and a Flask application for running and analyzing code in Python and Java. Docker is used for isolated execution environments.
 
+![Screenshot](screenshots/screenshot-java.png)
+![Screenshot](screenshots/screenshot-python.png)
+
 ## Project Structure
 
 - **monaco-editor/**: Contains the web-based code editor setup using the Monaco editor.
